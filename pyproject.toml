@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tinvest-devkit"
+version = "0.1.0"
+description = "Reusable read-only development tools for T-Invest API projects"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+
+dependencies = [
+    "t-tech-investments==1.49.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
