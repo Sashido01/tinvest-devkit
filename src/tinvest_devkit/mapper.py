@@ -3,6 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from t_tech.invest import (
+    HistoricCandle as SdkHistoricCandle,
     LastPrice as SdkLastPrice,
     MoneyValue,
     OperationItem,
@@ -12,6 +13,7 @@ from t_tech.invest import (
 )
 
 from tinvest_devkit.models import (
+    HistoricCandle,
     LastPrice,
     MoneyPosition,
     Operation,
@@ -295,4 +297,30 @@ def map_portfolio_response(
             map_portfolio_position(value)
             for value in response.positions
         ),
+    )
+
+def map_historic_candle(
+    value: SdkHistoricCandle,
+) -> HistoricCandle:
+    return HistoricCandle(
+        timestamp=value.time,
+        open=quotation_to_decimal(
+            value.open
+        ),
+        high=quotation_to_decimal(
+            value.high
+        ),
+        low=quotation_to_decimal(
+            value.low
+        ),
+        close=quotation_to_decimal(
+            value.close
+        ),
+        volume=value.volume,
+        is_complete=value.is_complete,
+        candle_source=int(
+            value.candle_source
+        ),
+        volume_buy=value.volume_buy,
+        volume_sell=value.volume_sell,
     )

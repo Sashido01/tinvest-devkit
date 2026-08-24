@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Callable, TypeVar
 
 import grpc
 from t_tech.invest import (
+    CandleInterval,
     Client,
     GetOperationsByCursorRequest,
     OperationState,
@@ -14,6 +16,7 @@ from t_tech.invest.exceptions import RequestError
 
 from tinvest_devkit.config import Settings
 from tinvest_devkit.mapper import (
+    map_historic_candle,
     map_last_price,
     map_operation_item,
     map_portfolio_response,
@@ -21,6 +24,7 @@ from tinvest_devkit.mapper import (
 )
 from tinvest_devkit.models import (
     Account,
+    HistoricCandle,
     LastPrice,
     Operation,
     PortfolioSnapshot,
@@ -243,6 +247,52 @@ class TInvestReadClient:
             map_last_price(value)
             for value
             in response.last_prices
+        ]
+
+    def get_historical_candles(
+        self,
+        instrument_id: str,
+        *,
+        from_: datetime,
+        to: datetime,
+        interval: CandleInterval = (
+            CandleInterval.CANDLE_INTERVAL_DAY
+        ),
+        limit: int | None = None,
+    ) -> list[HistoricCandle]:
+        if not instrument_id.strip():
+            raise ValueError(
+                "instrument_id is required"
+            )
+
+        if from_ >= to:
+            raise ValueError(
+                "from_ must be earlier than to"
+            )
+
+        with self.client_factory(
+            self.settings.token
+        ) as client:
+            response = (
+                self._call_with_retry(
+                    lambda: (
+                        client.market_data
+                        .get_candles(
+                            instrument_id=(
+                                instrument_id
+                            ),
+                            from_=from_,
+                            to=to,
+                            interval=interval,
+                            limit=limit,
+                        )
+                    )
+                )
+            )
+
+        return [
+            map_historic_candle(value)
+            for value in response.candles
         ]
 
     def get_positions(

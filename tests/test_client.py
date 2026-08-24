@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import grpc
@@ -30,14 +31,32 @@ class FakeUsersService:
 
 
 class FakeMarketDataService:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        candles_response=None,
+    ) -> None:
         self.requests = []
+        self.candle_requests = []
+        self.candles_response = (
+            candles_response
+        )
 
     def get_last_prices(self, **kwargs):
         self.requests.append(kwargs)
 
         return SimpleNamespace(
             last_prices=[]
+        )
+
+    def get_candles(self, **kwargs):
+        self.candle_requests.append(kwargs)
+
+        if self.candles_response is not None:
+            return self.candles_response
+
+        return SimpleNamespace(
+            candles=[]
         )
 
 
@@ -340,3 +359,106 @@ def test_get_portfolio_requires_account_id() -> None:
         match="account_id is required",
     ):
         client.get_portfolio()
+
+def test_get_historical_candles_uses_instrument_id(
+    monkeypatch,
+) -> None:
+    expected = object()
+
+    service = FakeMarketDataService(
+        candles_response=SimpleNamespace(
+            candles=[object()]
+        )
+    )
+
+    FakeSdkClient.market_data_service = service
+
+    monkeypatch.setattr(
+        "tinvest_devkit.client.map_historic_candle",
+        lambda value: expected,
+    )
+
+    client = TInvestReadClient(
+        make_settings(),
+        client_factory=FakeSdkClient,
+    )
+
+    from_time = datetime(
+        2026,
+        8,
+        1,
+        tzinfo=timezone.utc,
+    )
+
+    to_time = datetime(
+        2026,
+        8,
+        24,
+        tzinfo=timezone.utc,
+    )
+
+    result = client.get_historical_candles(
+        "instrument-1",
+        from_=from_time,
+        to=to_time,
+    )
+
+    assert result == [expected]
+
+    request = service.candle_requests[0]
+
+    assert request["instrument_id"] == "instrument-1"
+    assert "figi" not in request
+    assert request["from_"] == from_time
+    assert request["to"] == to_time
+
+
+def test_historical_candles_require_instrument_id() -> None:
+    client = TInvestReadClient(
+        make_settings(),
+        client_factory=FakeSdkClient,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="instrument_id is required",
+    ):
+        client.get_historical_candles(
+            "   ",
+            from_=datetime(
+                2026,
+                8,
+                1,
+                tzinfo=timezone.utc,
+            ),
+            to=datetime(
+                2026,
+                8,
+                2,
+                tzinfo=timezone.utc,
+            ),
+        )
+
+
+def test_historical_candles_validate_date_range() -> None:
+    client = TInvestReadClient(
+        make_settings(),
+        client_factory=FakeSdkClient,
+    )
+
+    timestamp = datetime(
+        2026,
+        8,
+        24,
+        tzinfo=timezone.utc,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="from_ must be earlier than to",
+    ):
+        client.get_historical_candles(
+            "instrument-1",
+            from_=timestamp,
+            to=timestamp,
+        )

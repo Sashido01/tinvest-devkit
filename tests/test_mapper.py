@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 
 from t_tech.invest import (
+    HistoricCandle as SdkHistoricCandle,
     LastPrice as SdkLastPrice,
     MoneyValue,
     PortfolioPosition as SdkPortfolioPosition,
@@ -12,6 +13,7 @@ from t_tech.invest import (
 )
 
 from tinvest_devkit.mapper import (
+    map_historic_candle,
     map_last_price,
     map_portfolio_response,
     map_positions_response,
@@ -258,3 +260,53 @@ def test_map_portfolio_response() -> None:
         result.positions[0].current_price
         == Decimal("163.05")
     )
+
+def test_map_historic_candle() -> None:
+    timestamp = datetime(
+        2026,
+        8,
+        24,
+        10,
+        0,
+        tzinfo=timezone.utc,
+    )
+
+    value = SdkHistoricCandle(
+        open=Quotation(
+            units=100,
+            nano=0,
+        ),
+        high=Quotation(
+            units=110,
+            nano=0,
+        ),
+        low=Quotation(
+            units=95,
+            nano=0,
+        ),
+        close=Quotation(
+            units=105,
+            nano=500_000_000,
+        ),
+        volume=12345,
+        time=timestamp,
+        is_complete=True,
+        candle_source=1,
+        volume_buy=7000,
+        volume_sell=5345,
+    )
+
+    result = map_historic_candle(
+        value
+    )
+
+    assert result.timestamp == timestamp
+    assert result.open == Decimal("100")
+    assert result.high == Decimal("110")
+    assert result.low == Decimal("95")
+    assert result.close == Decimal("105.5")
+    assert result.volume == 12345
+    assert result.is_complete is True
+    assert result.candle_source == 1
+    assert result.volume_buy == 7000
+    assert result.volume_sell == 5345

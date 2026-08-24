@@ -118,3 +118,16 @@ class PortfolioSnapshot:
     daily_yield_currency: str
     daily_yield_relative: Decimal
     positions: tuple[PortfolioPosition, ...]
+
+@dataclass(frozen=True)
+class HistoricCandle:
+    timestamp: datetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
+    is_complete: bool
+    candle_source: int
+    volume_buy: int
+    volume_sell: int
