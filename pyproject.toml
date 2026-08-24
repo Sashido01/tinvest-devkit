@@ -14,5 +14,8 @@ dependencies = [
     "t-tech-investments==1.49.3",
 ]
 
+[project.scripts]
+tinvest-devkit = "tinvest_devkit.__main__:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
