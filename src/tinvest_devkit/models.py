@@ -61,3 +61,60 @@ class SecurityPosition:
     balance: Decimal
     blocked: Decimal
     instrument_type: str
+
+@dataclass(frozen=True)
+class MoneyPosition:
+    currency: str
+    amount: Decimal
+
+
+@dataclass(frozen=True)
+class PositionsSnapshot:
+    account_id: str
+    money: tuple[MoneyPosition, ...]
+    blocked_money: tuple[MoneyPosition, ...]
+    securities: tuple[SecurityPosition, ...]
+    limits_loading_in_progress: bool
+
+
+@dataclass(frozen=True)
+class PortfolioPosition:
+    instrument_uid: str
+    position_uid: str
+    ticker: str
+    figi: str
+    instrument_type: str
+    quantity: Decimal
+    quantity_lots: Decimal
+    blocked: bool
+    blocked_lots: Decimal
+    average_position_price: Decimal
+    average_position_price_currency: str
+    average_position_price_fifo: Decimal
+    average_position_price_fifo_currency: str
+    current_price: Decimal
+    current_price_currency: str
+    expected_yield: Decimal
+    expected_yield_fifo: Decimal
+    daily_yield: Decimal
+    daily_yield_currency: str
+
+
+@dataclass(frozen=True)
+class PortfolioSnapshot:
+    account_id: str
+    total_amount_shares: Decimal
+    total_amount_bonds: Decimal
+    total_amount_etf: Decimal
+    total_amount_currencies: Decimal
+    total_amount_futures: Decimal
+    total_amount_options: Decimal
+    total_amount_sp: Decimal
+    total_amount_dfa: Decimal
+    total_amount_portfolio: Decimal
+    currency: str
+    expected_yield: Decimal
+    daily_yield: Decimal
+    daily_yield_currency: str
+    daily_yield_relative: Decimal
+    positions: tuple[PortfolioPosition, ...]

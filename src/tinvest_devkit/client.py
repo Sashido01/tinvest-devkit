@@ -16,11 +16,15 @@ from tinvest_devkit.config import Settings
 from tinvest_devkit.mapper import (
     map_last_price,
     map_operation_item,
+    map_portfolio_response,
+    map_positions_response,
 )
 from tinvest_devkit.models import (
     Account,
     LastPrice,
     Operation,
+    PortfolioSnapshot,
+    PositionsSnapshot,
     SecurityPosition,
 )
 
@@ -99,6 +103,22 @@ class TInvestReadClient:
             "retry loop ended unexpectedly"
         )
 
+    def _resolve_account_id(
+        self,
+        account_id: str | None,
+    ) -> str:
+        resolved_account_id = (
+            account_id
+            or self.settings.account_id
+        )
+
+        if not resolved_account_id:
+            raise ValueError(
+                "account_id is required"
+            )
+
+        return resolved_account_id
+
     def get_accounts(
         self,
     ) -> list[Account]:
@@ -131,14 +151,10 @@ class TInvestReadClient:
         account_id: str | None = None,
     ) -> list[Operation]:
         resolved_account_id = (
-            account_id
-            or self.settings.account_id
-        )
-
-        if not resolved_account_id:
-            raise ValueError(
-                "account_id is required"
+            self._resolve_account_id(
+                account_id
             )
+        )
 
         operations: list[
             Operation
@@ -229,20 +245,78 @@ class TInvestReadClient:
             in response.last_prices
         ]
 
+    def get_positions(
+        self,
+        *,
+        account_id: str | None = None,
+    ) -> PositionsSnapshot:
+        resolved_account_id = (
+            self._resolve_account_id(
+                account_id
+            )
+        )
+
+        with self.client_factory(
+            self.settings.token
+        ) as client:
+            response = (
+                self._call_with_retry(
+                    lambda: (
+                        client.operations
+                        .get_positions(
+                            account_id=(
+                                resolved_account_id
+                            )
+                        )
+                    )
+                )
+            )
+
+        return map_positions_response(
+            response
+        )
+
+    def get_portfolio(
+        self,
+        *,
+        account_id: str | None = None,
+    ) -> PortfolioSnapshot:
+        resolved_account_id = (
+            self._resolve_account_id(
+                account_id
+            )
+        )
+
+        with self.client_factory(
+            self.settings.token
+        ) as client:
+            response = (
+                self._call_with_retry(
+                    lambda: (
+                        client.operations
+                        .get_portfolio(
+                            account_id=(
+                                resolved_account_id
+                            )
+                        )
+                    )
+                )
+            )
+
+        return map_portfolio_response(
+            response
+        )
+
     def get_security_positions(
         self,
         *,
         account_id: str | None = None,
     ) -> list[SecurityPosition]:
         resolved_account_id = (
-            account_id
-            or self.settings.account_id
-        )
-
-        if not resolved_account_id:
-            raise ValueError(
-                "account_id is required"
+            self._resolve_account_id(
+                account_id
             )
+        )
 
         with self.client_factory(
             self.settings.token

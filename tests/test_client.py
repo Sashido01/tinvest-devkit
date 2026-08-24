@@ -42,15 +42,35 @@ class FakeMarketDataService:
 
 
 class FakeOperationsService:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        positions_response=None,
+        portfolio_response=None,
+    ) -> None:
         self.position_requests = []
+        self.portfolio_requests = []
+        self.positions_response = (
+            positions_response
+        )
+        self.portfolio_response = (
+            portfolio_response
+        )
 
     def get_positions(self, **kwargs):
         self.position_requests.append(kwargs)
 
+        if self.positions_response is not None:
+            return self.positions_response
+
         return SimpleNamespace(
             securities=[]
         )
+
+    def get_portfolio(self, **kwargs):
+        self.portfolio_requests.append(kwargs)
+
+        return self.portfolio_response
 
 
 class FakeSdkClient:
@@ -244,3 +264,79 @@ def test_positions_require_account_id() -> None:
         match="account_id is required",
     ):
         client.get_security_positions()
+
+def test_get_positions_returns_snapshot() -> None:
+    service = FakeOperationsService(
+        positions_response=SimpleNamespace(
+            account_id="account-xyz",
+            money=[],
+            blocked=[],
+            securities=[],
+            limits_loading_in_progress=False,
+        )
+    )
+
+    FakeSdkClient.operations_service = service
+
+    client = TInvestReadClient(
+        make_settings("account-xyz"),
+        client_factory=FakeSdkClient,
+    )
+
+    result = client.get_positions()
+
+    assert result.account_id == "account-xyz"
+    assert result.money == ()
+    assert result.blocked_money == ()
+    assert result.securities == ()
+
+    assert service.position_requests == [
+        {
+            "account_id": "account-xyz",
+        }
+    ]
+
+
+def test_get_portfolio_passes_account_id(
+    monkeypatch,
+) -> None:
+    expected = object()
+
+    service = FakeOperationsService(
+        portfolio_response=object()
+    )
+
+    FakeSdkClient.operations_service = service
+
+    monkeypatch.setattr(
+        "tinvest_devkit.client.map_portfolio_response",
+        lambda response: expected,
+    )
+
+    client = TInvestReadClient(
+        make_settings("account-xyz"),
+        client_factory=FakeSdkClient,
+    )
+
+    result = client.get_portfolio()
+
+    assert result is expected
+
+    assert service.portfolio_requests == [
+        {
+            "account_id": "account-xyz",
+        }
+    ]
+
+
+def test_get_portfolio_requires_account_id() -> None:
+    client = TInvestReadClient(
+        make_settings(None),
+        client_factory=FakeSdkClient,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="account_id is required",
+    ):
+        client.get_portfolio()
