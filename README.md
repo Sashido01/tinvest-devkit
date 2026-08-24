@@ -2,27 +2,55 @@
 
 Reusable read-only development tools for Python projects that use the T-Invest API.
 
-tinvest-devkit provides a small application-facing layer over the official t-tech-investments SDK. It keeps SDK-specific structures out of application code and provides reusable models, configuration, mapping and network reliability helpers.
+`tinvest-devkit` provides an application-facing layer over the official
+`t-tech-investments` SDK and reusable tooling for creating, bootstrapping
+and validating T-Invest projects.
+
+The package keeps SDK-specific structures out of application code and provides
+configuration, application-owned models, mapping, read-only API access,
+environment diagnostics and automatic project setup.
+
+## Current status
+
+Current local development baseline:
+
+- Python 3.11+;
+- `t-tech-investments==1.49.3`;
+- read-only broker integration;
+- application-owned models;
+- `Decimal` financial values;
+- CLI commands `doctor` and `new`;
+- automatic project scaffold and bootstrap;
+- 61 automated tests at the current development checkpoint.
 
 ## Features
 
 - read-only T-Invest client;
 - account discovery;
-- paginated operation history loading;
-- security positions;
+- complete paginated operation history loading;
+- current security positions;
+- current money positions;
+- positions snapshots;
+- portfolio snapshots;
 - last market prices;
-- MoneyValue and Quotation conversion to Decimal;
+- historical candles;
+- `MoneyValue` and `Quotation` conversion to `Decimal`;
 - application-owned data models;
-- .env configuration;
-- optional account ID;
-- retry for transient gRPC UNAVAILABLE errors;
-- unit tests without real broker access.
+- `.env` configuration;
+- optional account selection;
+- retry for transient gRPC `UNAVAILABLE` errors;
+- environment and API readiness diagnostics;
+- new-project scaffolding;
+- automatic virtual environment creation;
+- automatic dependency installation;
+- optional Git initialization;
+- tests without real broker access.
 
 ## Safety
 
-tinvest-devkit is intentionally read-only.
+`tinvest-devkit` is intentionally read-only.
 
-It does not provide methods for:
+The public client does not provide methods for:
 
 - placing orders;
 - cancelling orders;
@@ -31,203 +59,548 @@ It does not provide methods for:
 
 Use a read-only T-Invest token whenever possible.
 
-Never commit a real token or .env file.
+Never commit a real token, `.env` file, brokerage export,
+production database or private financial data.
+
+See `docs/SECURITY.md`.
 
 ## Requirements
 
-- Python 3.11+
-- t-tech-investments==1.49.3
+- Python 3.11+;
+- Git when automatic Git initialization is required;
+- access to the T-Bank Python package index.
 
-The T-Invest Python SDK is distributed through the T-Bank package index rather than the default PyPI index.
+The current supported SDK version is:
 
-## Installation
+~~~text
+t-tech-investments==1.49.3
+~~~
+
+The T-Invest Python SDK is distributed through the T-Bank package index
+rather than the default PyPI index.
+
+## Development installation
 
 Clone the repository:
 
-    git clone https://github.com/Sashido01/tinvest-devkit.git
-    cd tinvest-devkit
+~~~text
+git clone https://github.com/Sashido01/tinvest-devkit.git
+cd tinvest-devkit
+~~~
 
 Create a virtual environment in PowerShell:
 
-    python -m venv .venv
-    $PY = Join-Path $PWD ".venv\Scripts\python.exe"
+~~~powershell
+python -m venv .venv
+$PY = Join-Path $PWD ".venv\Scripts\python.exe"
+~~~
 
 Install dependencies:
 
-    & $PY -m pip install --upgrade pip
-    & $PY -m pip install -r requirements.txt
-    & $PY -m pip install -r requirements-dev.txt
+~~~powershell
+& $PY -m pip install --upgrade pip
+& $PY -m pip install -r requirements.txt
+& $PY -m pip install -r requirements-dev.txt
+~~~
 
-Install tinvest-devkit in editable mode:
+Install `tinvest-devkit` in editable mode:
 
-    & $PY -m pip install -e . --index-url "https://opensource.tbank.ru/api/v4/projects/238/packages/pypi/simple"
+~~~powershell
+& $PY -m pip install -e . --index-url "https://opensource.tbank.ru/api/v4/projects/238/packages/pypi/simple"
+~~~
 
 Run tests:
 
-    & $PY -m pytest
+~~~powershell
+& $PY -m pytest
+~~~
+
+## CLI
+
+After installation:
+
+~~~powershell
+tinvest-devkit --help
+~~~
+
+The package currently provides two commands:
+
+~~~text
+doctor
+new
+~~~
+
+The same interface is available through Python:
+
+~~~powershell
+python -m tinvest_devkit --help
+~~~
+
+## Create a new T-Invest project
+
+The main workflow is:
+
+~~~powershell
+tinvest-devkit new MyInvestProject
+~~~
+
+By default this performs both project generation and environment bootstrap.
+
+Conceptually:
+
+~~~text
+tinvest-devkit new
+    |
+    +--> scaffold project files
+    |
+    +--> create .venv
+    |
+    +--> install dependencies
+    |
+    +--> install local tinvest-devkit
+    |
+    +--> install generated project
+    |
+    +--> initialize Git
+    |
+    +--> run pytest
+    |
+    +--> run compileall
+    |
+    +--> ready for development
+~~~
+
+Create a project in another directory:
+
+~~~powershell
+tinvest-devkit new MyInvestProject --destination "D:\GitHub"
+~~~
+
+Create project files only:
+
+~~~powershell
+tinvest-devkit new MyInvestProject --no-bootstrap
+~~~
+
+Bootstrap without Git initialization:
+
+~~~powershell
+tinvest-devkit new MyInvestProject --no-git
+~~~
+
+The scaffold refuses to overwrite an existing target directory.
+
+It also never creates a real `.env` file and never copies credentials.
+
+## Generated project structure
+
+A generated project contains:
+
+~~~text
+MyInvestProject/
+|
++-- docs/
+|   +-- ARCHITECTURE.md
+|
++-- src/
+|   +-- myinvestproject/
+|       +-- __init__.py
+|       +-- main.py
+|
++-- tests/
+|   +-- __init__.py
+|   +-- test_smoke.py
+|
++-- .env.example
++-- .gitattributes
++-- .gitignore
++-- pyproject.toml
++-- pytest.ini
++-- README.md
+~~~
+
+The generated starter already imports `tinvest-devkit` and contains
+a minimal read-only T-Invest connection example.
 
 ## Configuration
 
-Create .env from .env.example.
+Create `.env` from `.env.example`.
 
 Example:
 
-    TINVEST_TOKEN=
-    TINVEST_ACCOUNT_ID=
+~~~text
+TINVEST_TOKEN=
+TINVEST_ACCOUNT_ID=
+~~~
 
-TINVEST_TOKEN is required.
+`TINVEST_TOKEN` is required.
 
-TINVEST_ACCOUNT_ID is optional for account discovery and can be required for account-specific operations.
+`TINVEST_ACCOUNT_ID` is optional for account discovery.
 
-The real .env file is excluded from Git.
+Account-specific client operations require either:
 
-## Quick start
+- `TINVEST_ACCOUNT_ID` in settings; or
+- an account ID passed explicitly to the client method.
 
-Python example:
+The real `.env` file is ignored by Git.
 
-    from tinvest_devkit.client import TInvestReadClient
-    from tinvest_devkit.config import load_settings
+## Environment doctor
 
-    settings = load_settings()
-    client = TInvestReadClient(settings)
+Before developing against a real brokerage account, run:
 
-    for account in client.get_accounts():
-        print(
-            account.account_id,
-            account.name,
-            account.status,
-        )
+~~~powershell
+tinvest-devkit doctor
+~~~
 
-## Load operation history
+A specific environment file can be checked:
 
-If TINVEST_ACCOUNT_ID is configured:
+~~~powershell
+tinvest-devkit doctor --env "D:\path\to\project\.env"
+~~~
 
-    operations = client.get_all_operations()
+The doctor checks:
 
-    for operation in operations:
-        print(
-            operation.timestamp,
-            operation.operation_type,
-            operation.description,
-        )
+- Python;
+- installed T-Invest SDK;
+- environment file;
+- configuration;
+- broker API connectivity;
+- available accounts;
+- selected account;
+- positions;
+- portfolio;
+- market-data access.
+
+Token values are not printed.
+
+A successful full diagnostic ends with:
+
+~~~text
+READY
+~~~
+
+and exits with code `0`.
+
+If only one brokerage account exists and no account ID is configured,
+the doctor can use that account for diagnostics and report a warning.
+
+If several accounts are available, explicit account selection is required.
+
+## Python quick start
+
+~~~python
+from tinvest_devkit.client import TInvestReadClient
+from tinvest_devkit.config import load_settings
+
+settings = load_settings()
+client = TInvestReadClient(settings)
+
+for account in client.get_accounts():
+    print(
+        account.account_id,
+        account.name,
+        account.status,
+    )
+~~~
+
+## Account discovery
+
+~~~python
+accounts = client.get_accounts()
+
+for account in accounts:
+    print(
+        account.account_id,
+        account.name,
+    )
+~~~
+
+## Complete operation history
+
+~~~python
+operations = client.get_all_operations()
+
+for operation in operations:
+    print(
+        operation.timestamp,
+        operation.operation_type,
+        operation.description,
+    )
+~~~
 
 An account can also be supplied explicitly:
 
-    operations = client.get_all_operations(
-        account_id="your-account-id"
-    )
+~~~python
+operations = client.get_all_operations(
+    account_id="your-account-id",
+)
+~~~
 
-The client follows T-Invest cursor pagination until the complete available operation history has been loaded.
+The client follows cursor pagination until the complete available
+executed operation history has been loaded.
+
+Commission and trade details are included in the raw application-owned
+operation model when returned by the broker.
 
 ## Last prices
 
-    prices = client.get_last_prices(
-        [
-            "instrument-uid-1",
-            "instrument-uid-2",
-        ]
+~~~python
+prices = client.get_last_prices(
+    [
+        "instrument-uid-1",
+        "instrument-uid-2",
+    ]
+)
+
+for price in prices:
+    print(
+        price.instrument_uid,
+        price.price,
+        price.timestamp,
     )
+~~~
 
-    for price in prices:
-        print(
-            price.instrument_uid,
-            price.price,
-            price.timestamp,
-        )
+Current calls use instrument UID through `instrument_id`.
 
-## Security positions
+## Historical candles
 
-    positions = client.get_security_positions()
+~~~python
+from datetime import datetime, timezone
 
-    for position in positions:
-        print(
-            position.ticker,
-            position.balance,
-            position.instrument_uid,
-        )
+candles = client.get_historical_candles(
+    "instrument-uid",
+    from_=datetime(
+        2026,
+        8,
+        1,
+        tzinfo=timezone.utc,
+    ),
+    to=datetime(
+        2026,
+        8,
+        24,
+        tzinfo=timezone.utc,
+    ),
+)
+~~~
+
+Historical-candle requests use `instrument_id` rather than the deprecated
+FIGI request field.
+
+## Positions snapshot
+
+~~~python
+positions = client.get_positions()
+~~~
+
+The returned application-owned snapshot contains:
+
+- account ID;
+- money positions;
+- blocked money positions;
+- security positions;
+- loading-state metadata.
+
+Get only security positions:
+
+~~~python
+securities = client.get_security_positions()
+
+for position in securities:
+    print(
+        position.ticker,
+        position.balance,
+        position.instrument_uid,
+    )
+~~~
+
+## Portfolio snapshot
+
+~~~python
+portfolio = client.get_portfolio()
+
+for position in portfolio.positions:
+    print(
+        position.ticker,
+        position.quantity,
+        position.current_price,
+    )
+~~~
+
+Portfolio data is mapped into application-owned snapshot models.
+
+Raw SDK response objects are not intended to become the application model.
 
 ## Decimal precision
 
-Financial values are represented using Python Decimal.
+Financial values use Python `Decimal`.
 
-SDK values represented as units and nano are converted without using float.
+SDK values represented as `units` and `nano` are converted without
+passing through `float`.
 
 Available helpers:
 
-    from tinvest_devkit.mapper import (
-        money_value_to_decimal,
-        quotation_to_decimal,
-    )
+~~~python
+from tinvest_devkit.mapper import (
+    money_value_to_decimal,
+    quotation_to_decimal,
+)
+~~~
 
 ## Retry behavior
 
-Temporary T-Invest API failures with gRPC status UNAVAILABLE are retried automatically.
+Transient T-Invest API failures with gRPC status `UNAVAILABLE`
+are retried automatically.
 
-Default configuration:
+Current defaults:
 
-    attempts: 3
-    delays: 0.5 s, 1.0 s
+~~~text
+attempts: 3
+delay 1: 0.5 seconds
+delay 2: 1.0 seconds
+~~~
 
-Authentication and other non-transient errors are not retried.
+Authentication and other non-transient errors are not retried automatically.
 
-Retry parameters can be changed:
+Retry configuration can be changed:
 
-    client = TInvestReadClient(
-        settings,
-        retry_attempts=5,
-        retry_delay_seconds=1.0,
-    )
+~~~python
+client = TInvestReadClient(
+    settings,
+    retry_attempts=5,
+    retry_delay_seconds=1.0,
+)
+~~~
 
-## Project structure
+## Application-owned models
 
-    tinvest-devkit/
+Current reusable model groups include:
+
+- `Account`;
+- `Trade`;
+- `Operation`;
+- `LastPrice`;
+- `SecurityPosition`;
+- `MoneyPosition`;
+- `PositionsSnapshot`;
+- `PortfolioPosition`;
+- `PortfolioSnapshot`;
+- `HistoricCandle`.
+
+## Architecture boundary
+
+The intended integration boundary is:
+
+~~~text
+T-Invest API
     |
-    +-- docs/
-    +-- examples/
-    +-- src/
-    |   +-- tinvest_devkit/
-    |       +-- __init__.py
-    |       +-- client.py
-    |       +-- config.py
-    |       +-- mapper.py
-    |       +-- models.py
-    +-- tests/
-    +-- .env.example
-    +-- .gitignore
-    +-- pyproject.toml
-    +-- pytest.ini
-    +-- requirements-dev.txt
-    +-- requirements.txt
+    v
+t-tech-investments SDK
+    |
+    v
+tinvest-devkit
+    |
+    +--> mapping
+    |
+    +--> application-owned models
+    |
+    +--> read-only client
+    |
+    v
+application
+~~~
 
-## Scope
+Applications built on top of the devkit should keep application-specific
+logic in their own repositories.
 
-This repository contains reusable infrastructure for T-Invest integrations.
-
-Application-specific concerns should remain in applications built on top of this package, including:
+Examples:
 
 - portfolio accounting;
 - P&L rules;
-- databases;
+- SQLite databases;
 - investment strategies;
 - user-specific analytics;
-- dashboards and interfaces.
+- dashboards;
+- bots and interfaces.
+
+## Repository structure
+
+~~~text
+tinvest-devkit/
+|
++-- docs/
+|   +-- SECURITY.md
+|
++-- examples/
+|   +-- accounts.py
+|   +-- operations.py
+|   +-- positions.py
+|
++-- src/
+|   +-- tinvest_devkit/
+|       +-- __init__.py
+|       +-- __main__.py
+|       +-- bootstrap.py
+|       +-- client.py
+|       +-- config.py
+|       +-- doctor.py
+|       +-- mapper.py
+|       +-- models.py
+|       +-- scaffold.py
+|
++-- tests/
+|
++-- .env.example
++-- .gitattributes
++-- .gitignore
++-- pyproject.toml
++-- pytest.ini
++-- requirements-dev.txt
++-- requirements.txt
+~~~
 
 ## Testing
 
-Tests use fake SDK services and do not require access to a real brokerage account.
+The normal regression suite uses fake SDK services and fake command runners
+where possible.
+
+It does not require access to a real brokerage account.
 
 Run:
 
-    python -m pytest
+~~~powershell
+python -m pytest
+~~~
 
-The current tests cover configuration, Decimal conversion, market-price mapping, read-only client behavior and transient API retries.
+Real broker connectivity is verified separately with:
+
+~~~powershell
+tinvest-devkit doctor --env ".env"
+~~~
+
+Bootstrap changes should additionally be checked with a temporary real
+generated project.
+
+## Known SDK warnings
+
+`t-tech-investments==1.49.3` currently emits several
+`DeprecationWarning` messages during import for SDK request structures
+that still define deprecated FIGI fields.
+
+These warnings are produced by the installed SDK itself.
+
+They do not currently indicate a failing `tinvest-devkit` test.
+
+Devkit market-data requests should prefer `instrument_id`.
 
 ## License
 
-License information will be added before the first tagged release.
+Apache-2.0.
 
 ## Disclaimer
 
 This is an independent developer utility project.
 
-It is not an official T-Bank or T-Invest product and does not provide investment advice.
+It is not an official T-Bank or T-Invest product.
+
+It does not provide investment advice.
