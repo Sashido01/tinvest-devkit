@@ -240,3 +240,214 @@ def test_generated_text_files_use_lf(
         data = file_path.read_bytes()
 
         assert b"\r\n" not in data
+
+def test_cli_new_bootstraps_project(
+    tmp_path,
+    capsys,
+    monkeypatch,
+) -> None:
+    calls = []
+
+    def fake_bootstrap(
+        project_path,
+        devkit_path,
+        *,
+        initialize_git=True,
+    ):
+        calls.append(
+            (
+                project_path,
+                devkit_path,
+                initialize_git,
+            )
+        )
+
+        return type(
+            "BootstrapResult",
+            (),
+            {
+                "venv_python": (
+                    project_path
+                    / ".venv"
+                    / "Scripts"
+                    / "python.exe"
+                )
+            },
+        )()
+
+    monkeypatch.setattr(
+        "tinvest_devkit.__main__.bootstrap_project",
+        fake_bootstrap,
+    )
+
+    exit_code = main(
+        [
+            "new",
+            "BootstrapProject",
+            "--destination",
+            str(tmp_path),
+        ]
+    )
+
+    assert exit_code == 0
+    assert len(calls) == 1
+
+    project_path = (
+        tmp_path
+        / "BootstrapProject"
+    ).resolve()
+
+    assert calls[0][0] == project_path
+    assert calls[0][2] is True
+
+    output = (
+        capsys
+        .readouterr()
+        .out
+    )
+
+    assert "Environment ready:" in output
+    assert "Next steps:" in output
+
+
+def test_cli_new_no_git_passes_false(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    calls = []
+
+    def fake_bootstrap(
+        project_path,
+        devkit_path,
+        *,
+        initialize_git=True,
+    ):
+        calls.append(
+            initialize_git
+        )
+
+        return type(
+            "BootstrapResult",
+            (),
+            {
+                "venv_python": (
+                    project_path
+                    / ".venv"
+                    / "Scripts"
+                    / "python.exe"
+                )
+            },
+        )()
+
+    monkeypatch.setattr(
+        "tinvest_devkit.__main__.bootstrap_project",
+        fake_bootstrap,
+    )
+
+    exit_code = main(
+        [
+            "new",
+            "NoGitProject",
+            "--destination",
+            str(tmp_path),
+            "--no-git",
+        ]
+    )
+
+    assert exit_code == 0
+    assert calls == [False]
+
+
+def test_cli_new_no_bootstrap_skips_bootstrap(
+    tmp_path,
+    capsys,
+    monkeypatch,
+) -> None:
+    called = False
+
+    def fake_bootstrap(
+        project_path,
+        devkit_path,
+        *,
+        initialize_git=True,
+    ):
+        nonlocal called
+        called = True
+
+        raise AssertionError(
+            "bootstrap must not be called"
+        )
+
+    monkeypatch.setattr(
+        "tinvest_devkit.__main__.bootstrap_project",
+        fake_bootstrap,
+    )
+
+    exit_code = main(
+        [
+            "new",
+            "ScaffoldOnlyProject",
+            "--destination",
+            str(tmp_path),
+            "--no-bootstrap",
+        ]
+    )
+
+    assert exit_code == 0
+    assert called is False
+
+    output = (
+        capsys
+        .readouterr()
+        .out
+    )
+
+    assert "Bootstrap skipped." in output
+
+
+def test_cli_new_reports_bootstrap_failure(
+    tmp_path,
+    capsys,
+    monkeypatch,
+) -> None:
+    def fake_bootstrap(
+        project_path,
+        devkit_path,
+        *,
+        initialize_git=True,
+    ):
+        raise RuntimeError(
+            "bootstrap exploded"
+        )
+
+    monkeypatch.setattr(
+        "tinvest_devkit.__main__.bootstrap_project",
+        fake_bootstrap,
+    )
+
+    exit_code = main(
+        [
+            "new",
+            "BrokenBootstrapProject",
+            "--destination",
+            str(tmp_path),
+        ]
+    )
+
+    assert exit_code == 1
+
+    output = (
+        capsys
+        .readouterr()
+        .out
+    )
+
+    assert (
+        "ERROR: bootstrap failed:"
+        in output
+    )
+
+    assert (
+        "RuntimeError: bootstrap exploded"
+        in output
+    )
