@@ -13,6 +13,7 @@
 - Kept the Python public surface additive and the client read-only. No order placement, cancellation, strategy, account policy, or live execution support was added.
 - Recorded engineering boundaries, current official API references, and transferable Rust practices. This package does not claim Rust broker support or generate a Rust client.
 - Added the Apache-2.0 license text already declared by package metadata and advanced the package version from 0.1.0 to 0.1.1.
+- Kept SDK `1.49.3` and pinned installation to the matching upstream `Invest-SDK` source commit and SHA-256 archive digest after GitHub-hosted runners failed TLS validation against the official package registry.
 - Kept the scaffold creation unit test offline by passing `--no-bootstrap`; bootstrap planning remains tested separately with fake runners.
 
 ## Validation evidence
@@ -24,11 +25,18 @@
 - `compileall` passed for `src` and `tests`; `pip check` reported no broken requirements; `git diff --check` passed.
 - Built the 0.1.1 wheel and verified that the client module and license text were included.
 - The generated smoke directory was removed after verification. Tests used synthetic data; no broker token or real API request was used.
+- Repeated the generated-project bootstrap from the pinned GitHub source: bootstrap succeeded, the generated smoke test passed (**1 passed**), and `pip check` and `compileall` passed. Doctor stopped at missing credentials before any API request.
+
+## GitHub Actions status
+
+- CI run [#3](https://github.com/Sashido01/tinvest-devkit/actions/runs/41532972996) confirmed that both hosted runners reject the registry certificate chain as untrusted. TLS verification remains enabled.
+- The workflow and package metadata now use the exact official SDK source commit with a verified archive SHA-256. The rerun must pass on both Ubuntu and Windows before checks can be required or PR #1 merged.
 
 ## Limits of this verification
 
 - No live broker connectivity, sandbox request, order flow, or real financial data was exercised; no real API call was necessary for the offline smoke acceptance.
 - Validation was performed on Windows with Python 3.11.15. Linux and macOS behavior was not verified.
+- Hosted Linux and Windows SDK installation through the official GitHub source archive is awaiting the next Actions run; the registry TLS failure is documented above.
 - Rust formatting, Clippy, build and tests do not apply because this release adds no Rust code.
 - SDK request constructors still emit FIGI deprecation warnings. The pinned SDK was not upgraded without compatibility evidence.
 

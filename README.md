@@ -89,7 +89,7 @@ Engineering decisions and supported boundaries are documented in
 
 - Python 3.11+;
 - Git when automatic Git initialization is required;
-- access to the T-Bank Python package index.
+- access to GitHub to download the pinned official SDK source archive.
 
 The current supported SDK version is:
 
@@ -97,8 +97,11 @@ The current supported SDK version is:
 t-tech-investments==1.49.3
 ~~~
 
-The T-Invest Python SDK is distributed through the T-Bank package index
-rather than the default PyPI index.
+The SDK dependency is pinned to commit `5b3bcca6` in the
+[Invest-SDK source repository](https://github.com/Invest-SDK/invest-python),
+with an archive SHA-256 check. T-Bank announced this GitHub location while its
+package registry is unavailable. The package name and version remain
+`t-tech-investments==1.49.3`.
 
 ## Development installation
 
@@ -127,7 +130,7 @@ Install dependencies:
 Install `tinvest-devkit` in editable mode:
 
 ~~~powershell
-& $PY -m pip install -e . --index-url "https://opensource.tbank.ru/api/v4/projects/238/packages/pypi/simple"
+& $PY -m pip install -e .
 ~~~
 
 Run tests:
@@ -625,3 +628,4 @@ This is an independent developer utility project.
 It is not an official T-Bank or T-Invest product.
 
 It does not provide investment advice.
+

@@ -23,13 +23,13 @@ application-specific logic
 
 - Python 3.11+;
 - Git;
-- доступ к T-Bank Python package index;
+- доступ к GitHub для загрузки закреплённого официального SDK source archive;
 - PowerShell для приведённых Windows-команд.
 
 Текущая базовая версия SDK:
 
 ~~~text
-t-tech-investments==1.49.3
+t-tech-investments==1.49.3, source commit `5b3bcca6`
 ~~~
 
 ## Development environment
@@ -73,7 +73,7 @@ $PY = Join-Path $PWD ".venv\Scripts\python.exe"
 Установить devkit editable:
 
 ~~~powershell
-& $PY -m pip install -e . --index-url "https://opensource.tbank.ru/api/v4/projects/238/packages/pypi/simple"
+& $PY -m pip install -e .
 ~~~
 
 ## Normal regression
@@ -558,3 +558,4 @@ git log --oneline --decorate --graph -10
 ~~~
 
 Рабочее дерево должно быть clean.
+

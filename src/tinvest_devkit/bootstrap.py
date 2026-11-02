@@ -7,12 +7,6 @@ from pathlib import Path
 from typing import Callable, Sequence
 
 
-TBANK_INDEX_URL = (
-    "https://opensource.tbank.ru/api/v4/"
-    "projects/238/packages/pypi/simple"
-)
-
-
 @dataclass(frozen=True)
 class BootstrapCommand:
     args: tuple[str, ...]
@@ -299,3 +293,4 @@ def bootstrap_project(
         ),
         commands=commands,
     )
+

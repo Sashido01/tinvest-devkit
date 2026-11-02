@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install -r requirements-dev.txt
-          python -m pip install --no-deps .
+          python -m pip install .
       - name: Run unit tests
         run: python -m pytest -q
       - name: Compile package and tests
@@ -41,7 +41,8 @@ jobs:
       - name: Check installed dependency consistency
         run: python -m pip check
       - name: Build wheel
-        run: python -m pip wheel --no-deps --wheel-dir dist .
+        run: python -m pip wheel --no-deps --no-build-isolation --wheel-dir dist .
       - name: Inspect wheel contents
         run: |
           python -c "from pathlib import Path; from zipfile import ZipFile; p=next(Path('dist').glob('*.whl')); z=ZipFile(p); names=z.namelist(); assert any(n.endswith('tinvest_devkit/client.py') for n in names); assert not any(n.endswith(('.env', '.sqlite3')) or '/.env' in n for n in names); print(p.name, len(names), 'files')"
+

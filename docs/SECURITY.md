@@ -187,9 +187,13 @@ token безопасным.
 
 ## Dependency source
 
-T-Invest Python SDK устанавливается из T-Bank package index.
+T-Invest SDK устанавливается из source archive организации
+[Invest-SDK](https://github.com/Invest-SDK/invest-python) на commit
+`5b3bcca6af9d3a4e0bc347261ee6f6493acfe814`. Это временный официальный
+GitHub-маршрут, объявленный [T-Bank](https://www.tbank.ru/invest/social/profile/T_InvestAPI/f1923306-7574-4360-9757-6b3a0013318c/)
+после недоступности package registry. Требование закрепляет SHA-256 архива.
 
-Не заменяйте источник SDK случайным сторонним package index без отдельной
+Не заменяйте этот источник сторонним индексом или зеркалом без отдельной
 проверки происхождения пакета.
 
 ## Security reports
@@ -199,3 +203,4 @@ T-Invest Python SDK устанавливается из T-Bank package index.
 
 При описании проблемы используйте sanitised output и искусственные
 идентификаторы.
+

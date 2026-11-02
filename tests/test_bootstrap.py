@@ -3,7 +3,6 @@ from pathlib import Path
 import pytest
 
 from tinvest_devkit.bootstrap import (
-    TBANK_INDEX_URL,
     bootstrap_project,
     build_bootstrap_commands,
     resolve_venv_python,
@@ -50,10 +49,9 @@ def make_devkit(
         devkit
         / "requirements.txt"
     ).write_text(
-        "--index-url "
-        + TBANK_INDEX_URL
-        + "\n"
-        + "t-tech-investments==1.49.3\n",
+        "t-tech-investments @ https://github.com/Invest-SDK/invest-python/"
+        "archive/5b3bcca6af9d3a4e0bc347261ee6f6493acfe814.zip"
+        "#sha256=f2c167158ec3dbf3eff134817d46246c2c6b5df5258383ee2dfb7fb51dba9271\n",
         encoding="utf-8",
     )
 
@@ -433,3 +431,4 @@ def test_bootstrap_project_executes_commands(
         for command
         in result.commands
     ]
+

@@ -12,6 +12,7 @@ All notable changes to this project are documented in this file.
 - engineering decisions and dated official T-Invest contract snapshot;
 - Rust engineering guide covering transferable practices and SDK support boundaries;
 - canonical Apache-2.0 license text matching the package metadata.
+- SDK `1.49.3` is installed from its exact upstream GitHub source commit with a pinned archive SHA-256 while the official package registry is unavailable.
 
 ### Fixed
 
@@ -68,3 +69,4 @@ Current local development checkpoint:
 - real temporary generated-project bootstrap: OK.
 
 The test count is a snapshot of the current development state and is not a permanent contract.
+

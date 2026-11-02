@@ -5,7 +5,7 @@
 ## Protocol and SDK
 
 - T-Invest exposes gRPC, a REST proxy, gRPC-web and WebSocket endpoints. This devkit currently uses unary gRPC through the official Python SDK; it does not implement streams.
-- Official Python package: `t-tech-investments`, distributed from the T-Bank package index. This repository pins `1.49.3`; the pin is retained pending compatibility evidence.
+- Official Python package: `t-tech-investments`, version `1.49.3`. The official T-Bank account announced a temporary move to the `Invest-SDK` GitHub organization when its package registry became unavailable. This repository pins the matching upstream commit and its archive SHA-256; recheck the official installation channel before changing the source.
 - T-Bank's language list and official SDK references do not provide a supported Rust SDK; the official GitHub repository labels Rust as community/unofficial. This Python devkit does not claim Rust API support; general Rust engineering practices are recorded separately.
 - The official contract repository contains the protobuf schema. Do not hand-copy generated SDK types into application code.
 - Token types include read-only, full-access and sandbox. The devkit contract remains read-only; use a read-only token where available.
@@ -44,3 +44,4 @@ The official API distinguishes `UNAVAILABLE` (service unavailable) from `RESOURC
 - [Recommended deadlines](https://developer.tbank.ru/invest/intro/developer/deadlines)
 - [API limits](https://developer.tbank.ru/invest/intro/intro/limits)
 - [gRPC error codes](https://developer.tbank.ru/invest/intro/developer/error-codes/errors)
+
