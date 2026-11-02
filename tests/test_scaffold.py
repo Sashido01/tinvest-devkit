@@ -167,6 +167,7 @@ def test_cli_new_creates_project(
             "CliProject",
             "--destination",
             str(tmp_path),
+            "--no-bootstrap",
         ]
     )
 
