@@ -1,5 +1,7 @@
 # tinvest-devkit
 
+**Version 0.1.1**
+
 Reusable read-only development tools for Python projects that use the T-Invest API.
 
 `tinvest-devkit` provides an application-facing layer over the official
@@ -12,16 +14,17 @@ environment diagnostics and automatic project setup.
 
 ## Current status
 
-Current local development baseline:
+Current local development release:
 
 - Python 3.11+;
-- `t-tech-investments==1.49.3`;
+- `t-tech-investments==1.49.3` (pinned; update only after compatibility checks);
 - read-only broker integration;
 - application-owned models;
 - `Decimal` financial values;
 - CLI commands `doctor` and `new`;
 - automatic project scaffold and bootstrap;
-- 61 automated tests at the current development checkpoint.
+- 79 automated tests in the current suite.
+- explicit validated account scopes and bounded operation pagination.
 
 ## Features
 
@@ -30,6 +33,8 @@ Current local development baseline:
 - complete paginated operation history loading;
 - current security positions;
 - current money positions;
+- canonical instrument metadata by UID;
+- ticker resolution with explicit `class_code` for ambiguous results;
 - positions snapshots;
 - portfolio snapshots;
 - last market prices;
@@ -38,6 +43,8 @@ Current local development baseline:
 - application-owned data models;
 - `.env` configuration;
 - optional account selection;
+- account-bound read-only scope using exact broker IDs;
+- bounded cursor pagination with repeat detection;
 - retry for transient gRPC `UNAVAILABLE` errors;
 - environment and API readiness diagnostics;
 - new-project scaffolding;
@@ -45,6 +52,14 @@ Current local development baseline:
 - automatic dependency installation;
 - optional Git initialization;
 - tests without real broker access.
+
+The account scope validates the chosen broker ID with an explicit account-list
+request and exposes only account-scoped reads. It does not persist account
+information or replace token permissions.
+
+Instrument lookup returns the canonical UID, lot size, currency and exact
+`Decimal` price increment. Ticker search never picks the first result when the
+same ticker maps to multiple instruments.
 
 ## Safety
 
@@ -63,6 +78,12 @@ Never commit a real token, `.env` file, brokerage export,
 production database or private financial data.
 
 See `docs/SECURITY.md`.
+
+The package is licensed under Apache-2.0; see `LICENSE`.
+
+Engineering decisions and supported boundaries are documented in
+`docs/ENGINEERING_DECISIONS.md`, `docs/TINVEST_API_BASELINE.md` and
+`docs/RUST_ENGINEERING_GUIDE.md`.
 
 ## Requirements
 
@@ -173,7 +194,7 @@ tinvest-devkit new
 Create a project in another directory:
 
 ~~~powershell
-tinvest-devkit new MyInvestProject --destination "D:\GitHub"
+tinvest-devkit new MyInvestProject --destination "<projects-directory>"
 ~~~
 
 Create project files only:
@@ -255,7 +276,7 @@ tinvest-devkit doctor
 A specific environment file can be checked:
 
 ~~~powershell
-tinvest-devkit doctor --env "D:\path\to\project\.env"
+tinvest-devkit doctor --env "<project-directory>/.env"
 ~~~
 
 The doctor checks:

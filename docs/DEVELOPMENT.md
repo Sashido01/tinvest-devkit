@@ -37,7 +37,7 @@ t-tech-investments==1.49.3
 Перейти в repository:
 
 ~~~powershell
-Set-Location "D:\GitHub\tinvest-devkit"
+Set-Location "<repository-directory>"
 ~~~
 
 Создать virtual environment:
@@ -324,7 +324,7 @@ Unit tests doctor не должны требовать настоящий T-Inve
 Для реальной проверки можно использовать существующий `.env` application:
 
 ~~~powershell
-tinvest-devkit doctor --env "D:\path\to\application\.env"
+tinvest-devkit doctor --env "<application-directory>/.env"
 ~~~
 
 Успешный full check должен завершаться:

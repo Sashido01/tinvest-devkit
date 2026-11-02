@@ -59,6 +59,16 @@ Application
 
 Application не должна использовать raw SDK responses как свою domain model.
 
+Account-scoped operations can be narrowed with `TInvestReadClient.for_account`.
+That factory explicitly reads `GetAccounts`, requires one exact broker-ID match,
+and returns `AccountReadScope`, which does not accept a replacement account ID
+on its read methods. The scope is a convenience and fail-closed routing aid; the
+broker token remains the actual authorization boundary.
+
+Operation cursor paging has a finite page budget and rejects repeated cursors.
+Callers receive either a complete result within the configured budget or an
+exception, never an apparently complete partial list.
+
 ## Package structure
 
 Основные модули:
@@ -111,7 +121,8 @@ network access
 - `PositionsSnapshot`;
 - `PortfolioPosition`;
 - `PortfolioSnapshot`;
-- `HistoricCandle`.
+- `HistoricCandle`;
+- `Instrument`.
 
 Эти структуры принадлежат devkit, а не SDK.
 
@@ -136,6 +147,11 @@ Mapper отвечает за преобразование SDK representations в
 - SDK positions → own positions models;
 - SDK portfolio → own portfolio models;
 - SDK historic candle → `HistoricCandle`.
+
+Instrument lookup prefers canonical UID. Ticker search is a discovery aid only:
+the exact ticker is matched case-insensitively, and more than one UID requires
+the caller to provide `class_code`. Lot, currency and minimum price increment
+remain metadata; this library does not decide whether a trade is appropriate.
 
 Mapper не должен содержать application-specific accounting rules.
 
