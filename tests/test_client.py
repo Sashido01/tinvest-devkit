@@ -5,7 +5,11 @@ import grpc
 import pytest
 from t_tech.invest.exceptions import RequestError
 
-from tinvest_devkit.client import TInvestReadClient
+from tinvest_devkit.client import (
+    AccountScopeError,
+    OperationPaginationError,
+    TInvestReadClient,
+)
 from tinvest_devkit.config import Settings
 
 
@@ -92,6 +96,16 @@ class FakeOperationsService:
         return self.portfolio_response
 
 
+class FakeCursorOperationsService:
+    def __init__(self, responses) -> None:
+        self.responses = list(responses)
+        self.requests = []
+
+    def get_operations_by_cursor(self, request):
+        self.requests.append(request)
+        return self.responses.pop(0)
+
+
 class FakeSdkClient:
     users_service = None
     market_data_service = None
@@ -158,6 +172,117 @@ def test_get_accounts_maps_accounts() -> None:
     assert len(accounts) == 1
     assert accounts[0].account_id == "account-1"
     assert accounts[0].name == "Test"
+
+
+def test_account_scope_binds_reads_to_selected_broker_account() -> None:
+    FakeSdkClient.users_service = FakeUsersService(accounts=[
+        SimpleNamespace(id="account-1", name="First", type=1, status=2),
+        SimpleNamespace(id="account-2", name="Second", type=1, status=2),
+    ])
+    service = FakeOperationsService(positions_response=SimpleNamespace(
+        account_id="account-2", money=[], blocked=[], securities=[],
+        limits_loading_in_progress=False,
+    ))
+    FakeSdkClient.operations_service = service
+    client = TInvestReadClient(make_settings(None), client_factory=FakeSdkClient)
+
+    second_account = client.for_account("account-2")
+    result = second_account.get_positions()
+
+    assert second_account.account_id == "account-2"
+    assert result.account_id == "account-2"
+    assert service.position_requests == [{"account_id": "account-2"}]
+
+
+def test_account_scope_rejects_account_not_in_broker_list() -> None:
+    FakeSdkClient.users_service = FakeUsersService(accounts=[
+        SimpleNamespace(id="account-1", name="First", type=1, status=2),
+        SimpleNamespace(id="account-2", name="Second", type=1, status=2),
+    ])
+    client = TInvestReadClient(make_settings(), client_factory=FakeSdkClient)
+
+    with pytest.raises(AccountScopeError, match="not present"):
+        client.for_account("unknown-account")
+
+
+def test_account_scope_rejects_duplicate_broker_account_id() -> None:
+    duplicate = SimpleNamespace(id="account-1", name="Duplicate", type=1, status=2)
+    FakeSdkClient.users_service = FakeUsersService(accounts=[duplicate, duplicate])
+    client = TInvestReadClient(make_settings(), client_factory=FakeSdkClient)
+
+    with pytest.raises(AccountScopeError, match="not unique"):
+        client.for_account("account-1")
+
+
+def test_account_scope_rejects_mismatched_positions_response() -> None:
+    FakeSdkClient.users_service = FakeUsersService(accounts=[
+        SimpleNamespace(id="account-2", name="Second", type=1, status=2),
+    ])
+    FakeSdkClient.operations_service = FakeOperationsService(
+        positions_response=SimpleNamespace(
+            account_id="account-1", money=[], blocked=[], securities=[],
+            limits_loading_in_progress=False,
+        )
+    )
+    client = TInvestReadClient(make_settings(None), client_factory=FakeSdkClient)
+    scope = client.for_account("account-2")
+
+    with pytest.raises(AccountScopeError, match="response account_id"):
+        scope.get_positions()
+
+
+def test_account_scope_rejects_mismatched_portfolio_response(monkeypatch) -> None:
+    FakeSdkClient.users_service = FakeUsersService(accounts=[
+        SimpleNamespace(id="account-2", name="Second", type=1, status=2),
+    ])
+    FakeSdkClient.operations_service = FakeOperationsService(
+        portfolio_response=object(),
+    )
+    monkeypatch.setattr(
+        "tinvest_devkit.client.map_portfolio_response",
+        lambda response: SimpleNamespace(account_id="account-1"),
+    )
+    client = TInvestReadClient(make_settings(None), client_factory=FakeSdkClient)
+    scope = client.for_account("account-2")
+
+    with pytest.raises(AccountScopeError, match="response account_id"):
+        scope.get_portfolio()
+
+
+def test_operation_pagination_stops_at_configured_page_bound() -> None:
+    service = FakeCursorOperationsService([
+        SimpleNamespace(items=[], has_next=True, next_cursor="cursor-1"),
+    ])
+    FakeSdkClient.operations_service = service
+    client = TInvestReadClient(make_settings(), client_factory=FakeSdkClient)
+
+    with pytest.raises(OperationPaginationError, match="max_pages=1"):
+        client.get_all_operations(max_pages=1)
+
+    assert len(service.requests) == 1
+    assert service.requests[0].account_id == "account-1"
+
+
+def test_operation_pagination_rejects_repeated_cursor() -> None:
+    service = FakeCursorOperationsService([
+        SimpleNamespace(items=[], has_next=True, next_cursor="cursor-1"),
+        SimpleNamespace(items=[], has_next=True, next_cursor="cursor-1"),
+    ])
+    FakeSdkClient.operations_service = service
+    client = TInvestReadClient(make_settings(), client_factory=FakeSdkClient)
+
+    with pytest.raises(OperationPaginationError, match="repeated operation cursor"):
+        client.get_all_operations()
+
+    assert [request.cursor for request in service.requests] == ["", "cursor-1"]
+
+
+@pytest.mark.parametrize("max_pages", [0, -1, True, 1.5])
+def test_operation_pagination_requires_positive_integer_bound(max_pages) -> None:
+    client = TInvestReadClient(make_settings(), client_factory=FakeSdkClient)
+
+    with pytest.raises(ValueError, match="max_pages must be at least 1"):
+        client.get_all_operations(max_pages=max_pages)
 
 
 def test_unavailable_is_retried() -> None:

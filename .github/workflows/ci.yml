@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, Python 3.11)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+      - name: Install SDK and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+          python -m pip install .
+      - name: Run unit tests
+        run: python -m pytest -q
+      - name: Compile package and tests
+        run: python -m compileall -q src tests
+      - name: Check installed dependency consistency
+        run: python -m pip check
+      - name: Build wheel
+        run: python -m pip wheel --no-deps --no-build-isolation --wheel-dir dist .
+      - name: Inspect wheel contents
+        run: |
+          python -c "from pathlib import Path; from zipfile import ZipFile; p=next(Path('dist').glob('*.whl')); z=ZipFile(p); names=z.namelist(); assert any(n.endswith('tinvest_devkit/client.py') for n in names); assert not any(n.endswith(('.env', '.sqlite3')) or '/.env' in n for n in names); print(p.name, len(names), 'files')"
+

@@ -19,9 +19,11 @@ python -m tinvest_devkit doctor
 
 ## t-tech-investments cannot be installed
 
-T-Invest SDK распространяется через T-Bank package index.
+SDK закреплён на официальном исходном commit `5b3bcca6` в организации
+[Invest-SDK](https://github.com/Invest-SDK/invest-python). Архив проверяется
+по SHA-256 из `requirements.txt` и `pyproject.toml`.
 
-Если обычный PyPI не находит пакет, установите зависимости из repository:
+Установите SDK и остальные зависимости из repository:
 
 ~~~powershell
 python -m pip install -r requirements.txt
@@ -30,7 +32,7 @@ python -m pip install -r requirements.txt
 Для editable installation самого devkit:
 
 ~~~powershell
-python -m pip install -e . --index-url "https://opensource.tbank.ru/api/v4/projects/238/packages/pypi/simple"
+python -m pip install -e .
 ~~~
 
 Текущая поддерживаемая версия:
@@ -198,7 +200,7 @@ Warning сам по себе не равен failing test.
 
 ~~~powershell
 $PY = Join-Path $PWD ".venv\Scripts\python.exe"
-& $PY -m pip install -e . --index-url "https://opensource.tbank.ru/api/v4/projects/238/packages/pypi/simple"
+& $PY -m pip install -e .
 & $PY -m tinvest_devkit --help
 ~~~
 
@@ -284,7 +286,7 @@ python --version
 Проверьте:
 
 - network;
-- доступность T-Bank package index;
+- доступность закреплённого `Invest-SDK` GitHub archive;
 - pip;
 - Python version.
 
@@ -426,3 +428,4 @@ python --version
 git rev-parse --short HEAD
 git status
 ~~~
+
