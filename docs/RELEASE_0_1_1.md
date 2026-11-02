@@ -2,8 +2,8 @@
 
 **Date:** 2026-11-03
 **Version step:** `0.1.0` → `0.1.1` (patch release)
-**Readiness:** Package acceptance, hosted CI, CodeQL analysis, repository protection, and PR #1 merge are complete. The source release remains version `0.1.1`; package registry publication is excluded.
-**Publication:** Pull request [#1](https://github.com/Sashido01/tinvest-devkit/pull/1) was merged into `main` at `427fb193f2e1dcfbad15d86a8c2881f94857a0a7`. The `v0.1.1` tag and GitHub Release are the remaining source-release publication steps.
+**Readiness:** Package acceptance, hosted CI, CodeQL analysis, repository protection, and PR #1 merge are complete. The source release is version `0.1.1`; package registry publication is excluded.
+**Publication:** Pull request [#1](https://github.com/Sashido01/tinvest-devkit/pull/1) was merged into `main` at `427fb193f2e1dcfbad15d86a8c2881f94857a0a7`. The annotated tag [`v0.1.1`](https://github.com/Sashido01/tinvest-devkit/releases/tag/v0.1.1) points to release commit `2c2d7d578b01fad964c92178eb6111ac103b8c85`; the GitHub Release is published.
 
 ## What changed
 
@@ -49,10 +49,10 @@
 - Tests: `tests/test_client.py`, `tests/test_instruments.py`, `tests/test_scaffold.py`.
 - Documentation: `README.md`, `CHANGELOG.md`, `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT.md`, `docs/SECURITY.md`, `docs/ENGINEERING_DECISIONS.md`, `docs/RUST_ENGINEERING_GUIDE.md`, `docs/TINVEST_API_BASELINE.md`, and this report.
 
-## Git and remaining work
+## Git and publication
 
 - PR #1 is merged; `main` reached `427fb193f2e1dcfbad15d86a8c2881f94857a0a7` and `pyproject.toml` declares `0.1.1`.
 - The active branch ruleset and all three required checks were verified before the merge. CI and CodeQL also passed on the resulting `main` merge commit.
 - The local `main` was fast-forwarded to `origin/main` at the merge commit and was clean at verification.
-- Complete the source release with Git tag and GitHub Release `v0.1.1`. No package registry publication is included.
+- Tag `v0.1.1` and GitHub Release `v0.1.1` are published for commit `2c2d7d578b01fad964c92178eb6111ac103b8c85`. No package registry publication is included.
 
