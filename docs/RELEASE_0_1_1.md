@@ -2,8 +2,8 @@
 
 **Date:** 2026-11-03
 **Version step:** `0.1.0` → `0.1.1` (patch release)
-**Readiness:** COMPLETE (local acceptance)
-**Publication:** Local changes only; no remote publication was performed.
+**Readiness:** Local acceptance complete; GitHub CI and repository protection are pending.
+**Publication:** Pull request [#1](https://github.com/Sashido01/tinvest-devkit/pull/1) is open. The release has not been merged or published.
 
 ## What changed
 
@@ -47,4 +47,5 @@ The implementation is recorded in local scoped commits on a dedicated working br
 - `486afb5` — document reusable API and Rust boundaries.
 - `ed5b223` — advance the package from 0.1.0 to 0.1.1 and consolidate changelog history.
 
-This release report is committed separately. No push, pull request or public repository change is part of this release.
+This report describes the current PR-based publication path. The release is not complete until CI has run successfully, repository protection is verified, and the pull request is merged. No package registry publication is included.
+
