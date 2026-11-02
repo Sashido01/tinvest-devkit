@@ -14,6 +14,7 @@ from t_tech.invest import (
 
 from tinvest_devkit.models import (
     HistoricCandle,
+    Instrument,
     LastPrice,
     MoneyPosition,
     Operation,
@@ -57,6 +58,24 @@ def map_last_price(
         price_type=int(
             value.last_price_type
         ),
+    )
+
+
+def map_instrument(value) -> Instrument:
+    if not value.uid:
+        raise ValueError("T-Invest instrument response has no canonical UID")
+    return Instrument(
+        uid=value.uid,
+        ticker=value.ticker,
+        figi=value.figi or None,
+        class_code=value.class_code,
+        instrument_type=value.instrument_type,
+        name=value.name,
+        lot=int(value.lot),
+        currency=value.currency,
+        min_price_increment=quotation_to_decimal(value.min_price_increment),
+        api_trade_available=bool(value.api_trade_available_flag),
+        position_uid=value.position_uid or None,
     )
 
 

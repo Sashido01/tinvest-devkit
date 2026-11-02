@@ -54,6 +54,23 @@ class LastPrice:
 
 
 @dataclass(frozen=True)
+class Instrument:
+    """Application-owned identity and trading metadata for one instrument."""
+
+    uid: str
+    ticker: str
+    figi: str | None
+    class_code: str
+    instrument_type: str
+    name: str
+    lot: int
+    currency: str
+    min_price_increment: Decimal
+    api_trade_available: bool
+    position_uid: str | None = None
+
+
+@dataclass(frozen=True)
 class SecurityPosition:
     instrument_uid: str
     ticker: str
