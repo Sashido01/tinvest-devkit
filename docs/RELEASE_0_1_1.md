@@ -2,7 +2,7 @@
 
 **Date:** 2026-11-03
 **Version step:** `0.1.0` → `0.1.1` (patch release)
-**Readiness:** Package acceptance and hosted CI are complete. Repository protection, merge, and release publication remain pending.
+**Readiness:** Package acceptance, hosted CI, and CodeQL analysis are complete. Repository protection, merge, and release publication remain pending.
 **Publication:** Pull request [#1](https://github.com/Sashido01/tinvest-devkit/pull/1) is open. The release has not been merged or published.
 
 ## What changed
@@ -31,6 +31,8 @@
 
 - CI run [#3](https://github.com/Sashido01/tinvest-devkit/actions/runs/41532972996) confirmed that both hosted runners reject the registry certificate chain as untrusted. TLS verification remains enabled.
 - CI run [#4](https://github.com/Sashido01/tinvest-devkit/actions/runs/41534573980) completed successfully for Ubuntu and Windows on PR head `3b5f986e3fb174f29c5fb5189a235cfd61241f0c` after package metadata switched to the exact official SDK source commit and verified archive SHA-256.
+- CI run [#7](https://github.com/Sashido01/tinvest-devkit/actions/runs/41536108813) and CodeQL run [#1](https://github.com/Sashido01/tinvest-devkit/actions/runs/41536108875) both completed successfully on PR head `0e03d300427b2276077ce2e285423e37ab77a0d8`. CodeQL scans Python on pull requests, pushes to `main`, and a weekly schedule.
+- Dependabot version updates are configured weekly for Python dependencies and GitHub Actions in `.github/dependabot.yml`.
 - `main` remains unprotected (`protected: false` and no required checks); the GitHub connection can read rulesets but exposes no ruleset or branch-protection mutation capability. No protection is claimed.
 
 ## Limits of this verification
@@ -48,9 +50,9 @@
 
 ## Git and remaining work
 
-- PR #1 points to `codex/tinvest-devkit-0.1.1` at `3b5f986e3fb174f29c5fb5189a235cfd61241f0c`; CI is green and GitHub reports the PR as mergeable.
-- The local workspace is on `codex/tinvest-devkit-reuse` at `04db956`. It has a different commit history and is not synchronized with the PR branch.
+- PR #1 points to `codex/tinvest-devkit-0.1.1`; its CI and CodeQL runs are green and GitHub reports the PR as mergeable.
+- The local workspace is on `codex/tinvest-devkit-reuse` and has a different commit history from the PR branch. Both histories are retained; local commits have not been pushed to or rewritten onto the PR branch.
 - `main` is still at `144753bab8fae80187528f8981327b9c2fe7f0ac`; no `v0.1.1` tag or GitHub Release exists.
-- Complete the repository protection and security settings with an owner connection that has repository administration access, then merge PR #1, publish and verify `v0.1.1`, and synchronize local Git without rewriting history.
+- Complete branch protection and any remaining GitHub Security settings with an owner connection that has repository administration access, then require the successful CI and CodeQL checks, merge PR #1, publish and verify `v0.1.1`, and synchronize local Git without rewriting history.
 - No package registry publication is included.
 
